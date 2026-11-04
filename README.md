@@ -1,5 +1,7 @@
 # Cut Before
 
+**Atit Kumar Satsangi | 230241 | Civil Engineering**
+
 **Find the moment. Keep the question.** A working submission for Kuku's AI Generalist assignment, Problem 1.
 
 | Open | Link |
@@ -8,7 +10,7 @@
 | Public sample demo | [View report](https://atits23.github.io/cut-before-kuku-assignment/) |
 | Runnable prototype | [Open in Colab](https://colab.research.google.com/github/atits23/cut-before-kuku-assignment/blob/main/Cut_Before.ipynb) |
 
-The full run covered **50 episodes and 3,727 timed events**, with **17 shortlist, 20 reserve and 13 reject decisions**. Full results and unedited raw outputs are available through the complete encrypted review link supplied in the placement form. That link opens without an account. Its key is deliberately absent from this repository.
+The full run covered **50 episodes and 3,727 timed events**, with **17 test-first clips, 20 clips needing further review and 13 episodes not recommended**. Full results and unedited raw outputs are available through the complete encrypted review link supplied in the placement form. That link opens without an account. Its key is deliberately absent from this repository.
 
 The public demo uses an original flooded-vault story. It is a saved report; use the notebook or Python commands below to run a new input. The AI review is a separate model step, not an API call hidden inside the scanner.
 
