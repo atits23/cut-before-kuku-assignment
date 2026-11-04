@@ -1,6 +1,6 @@
 # Cut Before
 
-**Find the moment. Keep the question.** A working prototype for Kuku's AI Generalist assignment, Problem 1.
+**Find the moment. Keep the question.** A working submission for Kuku's AI Generalist assignment, Problem 1.
 
 | Open | Link |
 |---|---|
@@ -8,9 +8,15 @@
 | Public sample demo | [View report](https://atits23.github.io/cut-before-kuku-assignment/) |
 | Runnable prototype | [Open in Colab](https://colab.research.google.com/github/atits23/cut-before-kuku-assignment/blob/main/Cut_Before.ipynb) |
 
-The assignment run covered **50 episodes and 3,727 timed events**. It produced **17 shortlist, 20 reserve and 13 reject decisions**. The confidential raw results are not included in this public repository and must be shared separately with the assignment reviewers.
+The full run covered **50 episodes and 3,727 timed events**, with **17 shortlist, 20 reserve and 13 reject decisions**. Full results and unedited raw outputs are available through the complete encrypted review link supplied in the placement form. That link opens without an account. Its key is deliberately absent from this repository.
 
-The public demo uses an original flooded-vault story. It is a saved report; use the notebook or Python commands below to run a new input. The AI review is a separate model step, not an API call hidden inside the scanner. Twelve code tests pass. No audience performance has been measured.
+The public demo uses an original flooded-vault story. It is a saved report; use the notebook or Python commands below to run a new input. The AI review is a separate model step, not an API call hidden inside the scanner.
+
+## Review access and confidentiality
+
+`docs/review.enc` contains AES-256-GCM encrypted assignment outputs. The full review URL carries the key in its fragment, which is not included in the HTTP request. The browser decrypts locally; there are no analytics or third-party scripts. **Anyone with the complete link can read the material.** This is link-based sharing, not identity-based access. Do not post that link in public issues, README files or repository history. The original input ZIP is not uploaded. Generated review packets inside the protected download contain confidential source excerpts.
+
+The PDF describes the solution and a few selected promo examples. Code, synthetic test data and demo outputs are public. Twelve code tests pass. No audience performance has been measured.
 
 ## Try it in one minute
 
@@ -89,4 +95,4 @@ The private assignment results also include an AI self-audit of the baseline's t
 
 The public prototype contains only code, a notebook and original synthetic examples. **Do not upload the supplied Kuku scripts, review packets or private outputs to a public code repository.** Keep assignment-derived results in the evaluator submission channel. The original input ZIP is not bundled here.
 
-For the supplied show, the exact replay commands are in the private submission's `START_HERE.md`. Replaying a saved AI review reproduces that review's ranking; it does not call a model again or claim a fresh AI judgment.
+For the supplied show, download the saved review using the complete review link and follow the same scan/finalize commands. Replaying a saved AI review reproduces that review's ranking; it does not call a model again or claim a fresh AI judgment.
