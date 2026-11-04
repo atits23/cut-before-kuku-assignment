@@ -1,0 +1,12 @@
+__pycache__/
+.test_tmp/
+demo/
+new_run/
+model_reviews/
+merged/
+*.zip
+.env
+raw_outputs/
+
+*key*
+Submission_Links.md

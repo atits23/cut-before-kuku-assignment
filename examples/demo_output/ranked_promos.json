@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "stage": "AI_reviewed_not_audience_tested",
+  "pack_sha256": "ff1cbf524502e8fdd0f72c7789f11339cf43e16dd6fdaeb9d09e477af736b88e",
+  "review_sha256": "2ea2c2fb7ff24355e1accccc027bae6af939b71c83ace63cf331ed51f452dbc9",
+  "reviewer": "Original demo fixture",
+  "method": "Fixed example demonstrating the review contract; not a fresh model call.",
+  "ranking_weights": {
+    "hook": 30,
+    "cliffhanger": 35,
+    "clarity": 25,
+    "stakes": 10
+  },
+  "episodes_processed": 1,
+  "promos": [
+    {
+      "episode": 901,
+      "decision": "shortlist",
+      "title": "An impossible voice",
+      "start": "00:00.00",
+      "end": "00:30.00",
+      "scores": {
+        "hook": 4,
+        "cliffhanger": 5,
+        "clarity": 4,
+        "stakes": 4
+      },
+      "hook": "The courier says a man is locked in the vault.",
+      "cliffhanger": "Why does the courier sound like the guard's dead daughter?",
+      "reason": "An urgent rescue becomes an identity mystery.",
+      "risk": "The identity question takes five seconds; confirm timing on footage.",
+      "status": "shortlist",
+      "score": 87,
+      "duration": 30.0,
+      "segments": [
+        {
+          "episode": 901,
+          "start": "00:00.00",
+          "end": "00:30.00"
+        }
+      ],
+      "hook_evidence": {
+        "id": "E901B001",
+        "role": "COURIER",
+        "start": "00:00.00",
+        "end": "00:02.50",
+        "a": 0.0,
+        "b": 2.5,
+        "text": "\"Your brother is locked inside that vault.\""
+      },
+      "end_evidence": {
+        "id": "E901B007",
+        "role": "GUARD",
+        "start": "00:25.00",
+        "end": "00:30.00",
+        "a": 25.0,
+        "b": 30.0,
+        "text": "\"Why do you have my dead daughter's voice?\""
+      },
+      "next_beat": [
+        {
+          "id": "E901B008",
+          "role": "COURIER",
+          "start": "00:31.00",
+          "end": "00:36.00",
+          "a": 31.0,
+          "b": 36.0,
+          "text": "\"Because you have forgotten what happened here.\""
+        }
+      ],
+      "flags": [],
+      "rank": 1
+    }
+  ],
+  "rejected": []
+}

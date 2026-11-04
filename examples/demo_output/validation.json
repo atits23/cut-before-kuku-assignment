@@ -1,0 +1,21 @@
+{
+  "episodes": 1,
+  "reviewed": 1,
+  "promos": 1,
+  "shortlist": 1,
+  "reserve": 0,
+  "rejected": 0,
+  "checks": {
+    "input_hash_matches": true,
+    "full_episode_coverage": true,
+    "durations_20_to_60": true,
+    "exact_source_boundaries": true,
+    "no_cut_dialogue": true,
+    "score_schema": true
+  },
+  "not_validated": [
+    "audience response",
+    "actual video frame alignment",
+    "semantic accuracy by an independent editor"
+  ]
+}

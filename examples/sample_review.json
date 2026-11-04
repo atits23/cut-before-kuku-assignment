@@ -1,0 +1,24 @@
+{
+  "pack_sha256": "ff1cbf524502e8fdd0f72c7789f11339cf43e16dd6fdaeb9d09e477af736b88e",
+  "reviewer": "Original demo fixture",
+  "method": "Fixed example demonstrating the review contract; not a fresh model call.",
+  "reviews": [
+    {
+      "episode": 901,
+      "decision": "shortlist",
+      "title": "An impossible voice",
+      "start": "00:00.00",
+      "end": "00:30.00",
+      "scores": {
+        "hook": 4,
+        "cliffhanger": 5,
+        "clarity": 4,
+        "stakes": 4
+      },
+      "hook": "The courier says a man is locked in the vault.",
+      "cliffhanger": "Why does the courier sound like the guard's dead daughter?",
+      "reason": "An urgent rescue becomes an identity mystery.",
+      "risk": "The identity question takes five seconds; confirm timing on footage."
+    }
+  ]
+}

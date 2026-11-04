@@ -1,0 +1,42 @@
+EPISODE NUMBER: Episode 901
+EPISODE LOGLINE: A courier finds a stranger trapped in a flooding vault, but the guard recognizes something impossible about her voice.
+CONTINUITY NOTES: Original synthetic test. Not Kuku content.
+
+--- SCRIPT START ---
+SCENE 01
+Scene heading: INT. FLOODING STATION - NIGHT
+Scene start: 00:00.00
+Scene end: 00:36.00
+
+**COURIER:**
+Start: (00:00.00) | End: (00:02.50)
+"Your brother is locked inside that vault."
+
+**GUARD:**
+Start: (00:03.00) | End: (00:06.00)
+"I have no brother. Step away."
+
+**ACTION:**
+Start: (00:07.00) | End: (00:11.00)
+Water rises around the sealed vault. Someone pounds on the other side.
+
+**COURIER:**
+Start: (00:12.00) | End: (00:15.00)
+"There is a man inside. Give me the key."
+
+**GUARD:**
+Start: (00:17.00) | End: (00:20.00)
+"That room has been empty for twenty years."
+
+**ACTION:**
+Start: (00:21.00) | End: (00:24.00)
+The courier reaches for the key. The guard grabs her wrist.
+
+**GUARD:**
+Start: (00:25.00) | End: (00:30.00)
+"Why do you have my dead daughter's voice?"
+
+**COURIER:**
+Start: (00:31.00) | End: (00:36.00)
+"Because you have forgotten what happened here."
+--- SCRIPT END ---

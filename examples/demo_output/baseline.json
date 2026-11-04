@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "stage": "rules_only",
+  "pack_sha256": "ff1cbf524502e8fdd0f72c7789f11339cf43e16dd6fdaeb9d09e477af736b88e",
+  "coverage": [
+    {
+      "episode": 901,
+      "events": 8,
+      "duration": 36.0,
+      "valid_windows": 10,
+      "suggestions": 1,
+      "source_sha256": "be9dfb58991c9af4eeec5b48e2909f8dad7dabbaf4ba8f1a90a487891cf11748"
+    }
+  ],
+  "candidates": [
+    {
+      "episode": 901,
+      "start": "00:00.00",
+      "end": "00:30.00",
+      "duration": 30.0,
+      "rule_score": 25.33,
+      "id": "E901C1",
+      "hook_evidence": {
+        "id": "E901B001",
+        "role": "COURIER",
+        "start": "00:00.00",
+        "end": "00:02.50",
+        "a": 0.0,
+        "b": 2.5,
+        "text": "\"Your brother is locked inside that vault.\""
+      },
+      "end_evidence": {
+        "id": "E901B007",
+        "role": "GUARD",
+        "start": "00:25.00",
+        "end": "00:30.00",
+        "a": 25.0,
+        "b": 30.0,
+        "text": "\"Why do you have my dead daughter's voice?\""
+      },
+      "next_beat": [
+        {
+          "id": "E901B008",
+          "role": "COURIER",
+          "start": "00:31.00",
+          "end": "00:36.00",
+          "a": 31.0,
+          "b": 36.0,
+          "text": "\"Because you have forgotten what happened here.\""
+        }
+      ],
+      "flags": [],
+      "status": "Unreviewed rule suggestion"
+    }
+  ]
+}
