@@ -18,7 +18,7 @@ The notebook starts with your uploaded screenplay, then API settings, fresh revi
 
 `docs/review.enc` contains AES-256-GCM encrypted assignment outputs. The full review URL carries the key in its fragment, which is not included in the HTTP request. The browser decrypts locally; there are no analytics or third-party scripts. **Anyone with the complete link can read the material.** This is link-based sharing, not identity-based access. Do not post that link in public issues, README files or repository history. The original input ZIP is not uploaded. Generated review packets inside the protected download contain confidential source excerpts.
 
-The PDF describes the solution and a few selected promo examples. Code and clearly labelled automated-test fixtures are public; test fixtures are not used by the notebook. Twenty code tests pass, including eight simulated-response API tests; no live paid API run is claimed. No audience performance has been measured.
+The PDF describes the solution and a few selected promo examples. Code and clearly labelled automated-test fixtures are public; test fixtures are not used by the notebook. Twenty-five code tests pass, including thirteen simulated-response API tests; no live paid API run is claimed. No audience performance has been measured.
 
 ## Run on a new story
 
@@ -26,7 +26,7 @@ Open [the Colab notebook](https://colab.research.google.com/github/atits23/cut-b
 
 1. **Set up:** download the tested code. No story is loaded.
 2. **Upload:** select one screenplay TXT or one ZIP containing all episode TXT files.
-3. **API settings:** enter the supplied base URL and model ID, choose the protocol and tick `RUN_API`.
+3. **API settings:** choose Gemini, OpenAI or Other compatible API, then tick `RUN_API`. For Gemini, leave MODEL blank to select an available model in the next step.
 4. **Find promos:** enter the key privately. The model reviews every uploaded episode; the code validates and ranks its cuts.
 5. **Download:** get the report, CSV, JSON, raw responses and validation log.
 
@@ -38,18 +38,15 @@ Use the assignment's UTF-8 TXT format: `EPISODE NUMBER: Episode 1`, bold event l
 
 ### Model API settings
 
-| Setting | Enter |
-|---|---|
-| `API_PROTOCOL` | `responses` or `chat_completions` |
-| `API_BASE_URL` | Provider base URL; for OpenAI, `https://api.openai.com/v1` |
-| `MODEL` | The exact model ID supplied to you |
-| Key | Enter privately when step 4 asks; never put it in code |
+**Gemini key:** select **Gemini**. Leave MODEL blank, tick RUN_API, then run step 4 and enter the key privately. The notebook lists models available to your key; paste one exact ID from that list. It sets `https://generativelanguage.googleapis.com/v1beta`, `generateContent` and the `x-goog-api-key` header automatically. Do not pair a Gemini URL with the OpenAI Responses protocol.
 
-Both protocols use HTTPS and Bearer authentication. Do not append `/responses` or `/chat/completions` to the base URL. For a compatible chat provider requiring `max_tokens`, expand step 3 and change `CHAT_TOKEN_FIELD` from `max_completion_tokens` to `max_tokens`. The default output allowance is 4096 tokens; an incomplete reasoning response may need more. Native APIs with different schemas or authentication need another adapter.
+**OpenAI key:** select **OpenAI**, enter the model ID and tick RUN_API. The endpoint and Responses format are filled automatically.
 
-The upload step shows the request count: one request per episode. Only send scripts to an approved provider; charges may apply. There are no automatic retries. Invalid JSON, wrong episode IDs, wrong fingerprints, truncated responses and invalid cuts stop the run. Raw responses are preserved; no demo answer is substituted. Use a new run for a deliberate retry.
+**Another compatible provider:** select **Other compatible API**, enter CUSTOM_BASE_URL and MODEL, and select CUSTOM_PROTOCOL. This route supports Bearer-authenticated Responses or Chat Completions. Expand the cell to change CHAT_TOKEN_FIELD to `max_tokens` if required by that provider.
 
-Change the model ID to switch models. Change the protocol and base URL too when moving to another compatible provider. Parsing and ranking remain the same.
+The default output allowance is 4096 tokens. An incomplete reasoning response may need more. Gemini model discovery sends no screenplay and does not generate content; the subsequent review makes one generation request per uploaded episode. Only use a provider approved for the scripts. Charges and quota depend on the provider account.
+
+Wrong-format Google URLs are caught before any request. Missing or unavailable Gemini model IDs trigger model selection from the returned list. Invalid JSON, truncated answers or invalid cut points stop the run and preserve raw responses. No automatic retries or fixed fallback answer are used. Native Vertex AI and other authentication schemes are not implemented.
 
 ## Run locally
 
@@ -59,7 +56,7 @@ Python 3.10+, standard library only. Use your actual input path and supplied mod
 python api_review.py "your-story.zip" --out api_runs/show_01 --model PROVIDED_MODEL_ID --max-episodes 50
 ```
 
-For a compatible chat provider, add `--protocol chat_completions --base-url https://PROVIDER_HOST/v1` and its `--chat-token-field`. The key comes from hidden input or `MODEL_API_KEY`. The CLI defaults to a one-episode guard; set `--max-episodes` to at least your input's count for a full pack. It never silently reviews only part of an input. Use a new output folder per run.
+For a compatible chat provider, add `--protocol chat_completions --base-url https://PROVIDER_HOST/v1` and its `--chat-token-field`. For native Gemini, use `--protocol gemini`; its endpoint is set automatically and a blank `--model` prompts from the model list. Keys come from hidden input, `MODEL_API_KEY` or `GEMINI_API_KEY` for Gemini. The CLI defaults to a one-episode guard; set `--max-episodes` to at least your input's count for a full pack. It never silently reviews only part of an input. Use a new output folder per run.
 
 ## Without an API key
 
@@ -96,10 +93,10 @@ For one combined review JSON, skip `merge` and pass that file to `finalize`. Rep
 python -m unittest -v test_cut_before test_api_review
 ```
 
-Twenty tests cover parsing, boundaries, scores, new inputs and simulated API responses. The notebook is also checked with simulated uploads and responses. A live paid API run and hosted Colab upload have not been tested. The original 50-episode submission used chat review, not the later API adapter. No audience uplift or frame accuracy is claimed.
+Twenty-five tests cover parsing, boundaries, scores, new inputs and simulated API responses. The notebook is also checked with simulated uploads and responses. A live paid API run and hosted Colab upload have not been tested. The original 50-episode submission used chat review, not the later API adapter. No audience uplift or frame accuracy is claimed.
 
 Files under `examples/` are **automated-test fixtures only**. They are not loaded by the notebook or used as new-story results. There is no montage search. An editor must check the opening, ending, clarity and script-to-video timing. The submitted baseline and failure audit preserve actual mistakes.
 
 Keep confidential scripts, responses and notebook outputs out of public repositories. Clear private cell outputs before sharing. The original Kuku ZIP is not bundled.
 
-API references: [OpenAI text generation](https://developers.openai.com/api/docs/guides/text), [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+API references: [Gemini API](https://ai.google.dev/api), [OpenAI text generation](https://developers.openai.com/api/docs/guides/text), [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).

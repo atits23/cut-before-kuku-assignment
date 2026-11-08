@@ -17,6 +17,59 @@ tempfile.tempdir = str(TEST_TMP)
 
 
 class APIReviewTests(unittest.TestCase):
+    def test_gemini_end_to_end(self):
+        payload=json.dumps(dict(responseId='gem-test',modelVersion='available-gemini-model',
+            usageMetadata={'totalTokenCount':321},candidates=[dict(finishReason='STOP',
+            content=dict(parts=[dict(text=json.dumps(self.review))]))])).encode()
+        with tempfile.TemporaryDirectory() as d,patch.object(api,'post_json',return_value=payload) as post:
+            report=api.review_with_api(SAMPLE,Path(d)/'run',api_key='test',model='models/available-gemini-model',
+                protocol='gemini',base_url='https://generativelanguage.googleapis.com')
+            self.assertTrue(report.exists())
+            url,body,key,timeout=post.call_args.args
+            self.assertEqual(url,api.GEMINI_BASE+'/models/available-gemini-model:generateContent')
+            self.assertEqual(body['generationConfig']['responseMimeType'],'application/json')
+            manifest=json.loads((report.parent/'api_run.json').read_text())
+            self.assertEqual(manifest['calls'][0]['usage']['totalTokenCount'],321)
+
+    def test_gemini_uses_header_key_and_get_for_models(self):
+        with patch('urllib.request.build_opener') as opener:
+            opener.return_value.open.return_value.__enter__.return_value.read.return_value=b'{}'
+            api.post_json(api.GEMINI_BASE+'/models',None,'private-gem-key')
+            req=opener.return_value.open.call_args.args[0]
+            self.assertEqual(req.method,'GET')
+            self.assertEqual(req.get_header('X-goog-api-key'),'private-gem-key')
+            self.assertIsNone(req.get_header('Authorization'))
+            self.assertNotIn('private-gem-key',req.full_url)
+
+    def test_gemini_model_discovery_pagination_and_selection(self):
+        pages=[json.dumps({'models':[{'name':'models/current-a','supportedGenerationMethods':['generateContent']}],
+                          'nextPageToken':'next page'}).encode(),
+               json.dumps({'models':[{'name':'models/embed','supportedGenerationMethods':['embedContent']},
+                                     {'name':'models/current-b','supportedGenerationMethods':['generateContent']}]}).encode()]
+        with patch.object(api,'post_json',side_effect=pages) as post:
+            chosen=api.choose_gemini_model('secret','old-unavailable-model',choose=lambda prompt:'models/current-b')
+            self.assertEqual(chosen,'current-b')
+            self.assertIn('pageToken=next%20page',post.call_args.args[0])
+        with patch.object(api,'list_gemini_models',return_value=['current-a']):
+            with self.assertRaises(api.APIReviewError):
+                api.choose_gemini_model('secret','',choose=lambda prompt:'not-in-list')
+
+    def test_gemini_wrong_protocol_and_invalid_model_fail_before_request(self):
+        with self.assertRaisesRegex(api.APIReviewError,'wrong API format'):
+            api.request_spec('responses','https://generativelanguage.googleapis.com','gemini-1.5-flash','x')
+        with self.assertRaises(api.APIReviewError):
+            api.request_spec('gemini',api.GEMINI_BASE,'model?key=secret','x')
+        with self.assertRaises(api.APIReviewError):
+            api.request_spec('gemini','https://other.example/v1','model','x')
+
+    def test_gemini_incomplete_blocked_and_thoughts(self):
+        for payload in ({'promptFeedback':{'blockReason':'SAFETY'}},
+                        {'candidates':[{'finishReason':'MAX_TOKENS'}]}):
+            with self.assertRaises(api.APIReviewError):api.response_text(payload,'gemini')
+        payload={'candidates':[{'finishReason':'STOP','content':{'parts':[
+            {'thought':True,'text':'internal'}, {'text':'{"reviews":[]}'}]}}]}
+        self.assertEqual(api.response_text(payload,'gemini'),'{"reviews":[]}')
+
     def setUp(self):
         self.review = json.loads((SAMPLE.parent/'sample_review.json').read_text(encoding='utf-8'))
         self.review['pack_sha256'] = cb.load_pack(SAMPLE)[1]
