@@ -5,7 +5,7 @@
   "events": 8,
   "valid_windows": 10,
   "candidates": 1,
-  "elapsed_seconds": 0.001,
+  "elapsed_seconds": 0.002,
   "runtime_model_calls": 0,
   "external_requests": 0,
   "coverage": [

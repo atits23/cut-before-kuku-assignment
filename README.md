@@ -12,13 +12,13 @@
 
 The full run covered **50 episodes and 3,727 timed events**, with **17 test-first clips, 20 clips needing further review and 13 episodes not recommended**. Full results and unedited raw outputs are available through the complete encrypted review link supplied in the placement form. That link opens without an account. Its key is deliberately absent from this repository.
 
-The public demo uses an original flooded-vault story. It is a saved report; use the notebook or Python commands below to run a new input. The AI review is a separate model step, not an API call hidden inside the scanner.
+The public demo uses an original flooded-vault story. It is a saved report; use the notebook or Python commands below to run a new input. The scanner stays offline. Notebook section 6 adds optional direct API review with a configurable endpoint and model. The original full-pack review was produced in chat.
 
 ## Review access and confidentiality
 
 `docs/review.enc` contains AES-256-GCM encrypted assignment outputs. The full review URL carries the key in its fragment, which is not included in the HTTP request. The browser decrypts locally; there are no analytics or third-party scripts. **Anyone with the complete link can read the material.** This is link-based sharing, not identity-based access. Do not post that link in public issues, README files or repository history. The original input ZIP is not uploaded. Generated review packets inside the protected download contain confidential source excerpts.
 
-The PDF describes the solution and a few selected promo examples. Code, synthetic test data and demo outputs are public. Twelve code tests pass. No audience performance has been measured.
+The PDF describes the solution and a few selected promo examples. Code, synthetic test data and demo outputs are public. Twenty code tests pass, including eight simulated-response API tests; no live paid API run is claimed. No audience performance has been measured.
 
 ## Try it in one minute
 
@@ -58,7 +58,35 @@ python cut_before.py finalize "path/to/scripts.zip" --review merged/review.json 
 
 If the model returns one combined JSON covering every episode, skip `merge`. If validation fails, correct the review with the model and save the correction separately. The code refuses wrong-input reviews, missing/duplicate episodes, invented boundaries, clipped speech and invalid scores. It cannot prove that a model's explanation is true.
 
-**To change models:** use the same review packets and JSON contract in a different approved tool. No parser or ranking code needs to change. There is no API adapter in this version. A batch API adapter is a next step, not a claimed feature.
+**To change models:** use the same review packets and JSON contract in a different approved chat tool, or use the optional API route below. No parser or ranking code needs to change.
+
+## Interview mode: use the API they provide
+
+Open **section 6** in the notebook. Set `MODEL` to the exact supplied model ID, choose `PROTOCOL`, and enter its `BASE_URL`. Set `API_INPUT` to the uploaded TXT/ZIP filename (or keep `new_story.txt` for the original example). Enable `ENABLE_API`, then run the next cell and paste the key into the hidden prompt. A new run folder contains the validated report, CSV, raw responses and usage.
+
+Supported API contracts:
+
+| Protocol | Base URL | Token field |
+|---|---|---|
+| `responses` | `https://api.openai.com/v1` or a compatible endpoint | `max_output_tokens` |
+| `chat_completions` | The provider's compatible API base URL | Choose `max_completion_tokens` or `max_tokens` as required |
+
+Both use Bearer authentication over HTTPS. Native Anthropic, native Gemini and Azure-specific authentication are not implemented. A provider's compatible endpoint can be used if it supports this contract; arbitrary APIs are not guaranteed. Endpoint paths are appended automatically, so do not include `/responses` or `/chat/completions` in the base URL. Only send scripts to an approved provider.
+
+Local equivalent, with hidden key entry or the `MODEL_API_KEY` environment variable:
+
+```sh
+python api_review.py examples/new_story.txt --out api_runs/interview_01 --model PROVIDED_MODEL_ID
+python api_review.py examples/new_story.txt --out api_runs/interview_02 --protocol chat_completions --base-url https://PROVIDER_HOST/v1 --model PROVIDED_MODEL_ID --chat-token-field max_tokens
+```
+
+Replace the model and provider placeholders. This is a real opt-in API route; provider charges may apply. The offline demo still requires no key. `--max-episodes` defaults to 1 and rejects larger inputs before any request. It is a guard, not a partial-run selector: use one episode TXT for the interview, or set `--max-episodes 50` deliberately for the full pack. The adapter makes one request per episode, sequentially, and never retries automatically. Use a new output folder for each run. `--max-tokens` controls the output allowance (default 4096); long reasoning may need more.
+
+The raw provider response is saved before parsing. Wrong episode IDs, wrong fingerprints, bad JSON, truncated responses and invalid cut points stop the run. No fixture is substituted for a failed model call. `api_run.json` records endpoint, requested/returned models, response IDs, usage and run status, never the key. Clear confidential notebook outputs before sharing.
+
+**Test status:** eight simulated-response API tests plus twelve core tests pass. No live paid provider call or hosted Colab API run has been performed. The original 50-episode result remains the actual saved Codex chat review; it is not relabelled as an API run.
+
+API references: [OpenAI text generation](https://developers.openai.com/api/docs/guides/text), [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
 
 ## What the editor gets
 
@@ -77,7 +105,7 @@ The AI scores hook, cliffhanger, standalone clarity and stakes from 0 to 5. The 
 ## Quality checks
 
 ```sh
-python -m unittest -v test_cut_before
+python -m unittest -v test_cut_before test_api_review
 ```
 
 Tests cover a new story, source boundaries, clipped speech, input fingerprints, missing/duplicate reviews, score limits, malformed input, ZIP path handling and HTML escaping. The synthetic review in the tests is a fixture, not a live model output.
@@ -89,7 +117,7 @@ The private assignment results also include an AI self-audit of the baseline's t
 - English rules miss visual-only hooks, irony and softer drama. They also confuse literal threats with harmless words such as a hearth fire.
 - This parser supports the supplied screenplay format, not PDFs, video or every screenplay format.
 - AI can invent motives or borrow context from the full episode. Review the clip alone and check the quoted evidence.
-- No cross-episode montages, video rendering, audience testing, model API integration or automatic posting.
+- No cross-episode montages, video rendering, audience testing or automatic posting. The optional API adapter requires a supported endpoint and a valid key.
 - Within-episode suggestions are spread out by overlap. Similar story beats across different episodes still need an editor's judgment.
 - At larger volume, cache parsed episodes by source fingerprint, review episode batches through an approved model API and send only the shortlist to an editor. Model review is the slow step; the local scan is small.
 

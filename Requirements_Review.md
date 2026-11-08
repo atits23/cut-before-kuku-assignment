@@ -29,7 +29,7 @@ These are promo decisions, not recruitment outcomes. The original machine-readab
 
 ## Limits to explain honestly
 
-The code runs automatically; the story review is a separate AI chat step. Rerunning a saved review reproduces decisions, not a fresh model opinion. Code checks prove timing validity in the scripts, not strong hooks in actual footage. The first three seconds, standalone clarity, performance, pacing and picture cuts need editor review. The baseline audit is AI self-review, not independent accuracy testing. No real audience test, edited video or live model API integration is claimed. The notebook demo was run locally; Colab-specific upload cells were not tested in hosted Colab.
+The original run used AI chat review. The notebook now also has an optional direct API adapter with configurable model, endpoint and protocol, hidden key input and raw response/usage logging. Rerunning a saved review reproduces decisions, not a fresh model opinion. Code checks prove timing validity in the scripts, not strong hooks in actual footage. The first three seconds, standalone clarity, performance, pacing and picture cuts need editor review. The baseline audit is AI self-review, not independent accuracy testing. No real audience test or edited video is claimed. API integration is implemented and tested using simulated responses; a live paid API run has not been performed. The notebook demo was run locally; Colab-specific upload cells were not tested in hosted Colab.
 
 The complete review link grants access to confidential excerpts. Put it only in the assignment form, not the public repository. The original input ZIP is not uploaded.
 

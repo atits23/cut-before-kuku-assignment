@@ -7,6 +7,8 @@ merged/
 *.zip
 .env
 raw_outputs/
+api_runs/
+api_responses/
 
 *key*
 Submission_Links.md
