@@ -8,7 +8,7 @@ Chosen problem: Problem 1 - Find the Promos. Only one problem is submitted.
 |---|---|
 | PDF, no more than two pages | Cut_Before_Solution.pdf: two pages, with problem choice, assumptions, method, scale, quality and failures |
 | Explain AI use and one mistake | PDF identifies Codex, Python and ReportLab; episode 11 shows a weak baseline ending and the revised cut |
-| Runnable prototype | Public GitHub code and notebook; documented scan, review, merge and finalize steps; original new-input example |
+| Runnable prototype | Public GitHub code and notebook; five-step upload/API notebook and documented free chat route; no preloaded story |
 | Full input pack | 50 of 50 episodes; 3,727 timed events; source fingerprints in run_manifest.json |
 | 20–60 second promos | All 37 retained cuts pass exact timestamp, duration and uncut-dialogue checks |
 | Ordered segment timestamps, hook, cliffhanger, reason | Each retained promo has one continuous segment with episode/start/end, hook, cliffhanger and reason in JSON, CSV and the report |
@@ -29,7 +29,7 @@ These are promo decisions, not recruitment outcomes. The original machine-readab
 
 ## Limits to explain honestly
 
-The original run used AI chat review. The notebook now also has an optional direct API adapter with configurable model, endpoint and protocol, hidden key input and raw response/usage logging. Rerunning a saved review reproduces decisions, not a fresh model opinion. Code checks prove timing validity in the scripts, not strong hooks in actual footage. The first three seconds, standalone clarity, performance, pacing and picture cuts need editor review. The baseline audit is AI self-review, not independent accuracy testing. No real audience test or edited video is claimed. API integration is implemented and tested using simulated responses; a live paid API run has not been performed. The notebook demo was run locally; Colab-specific upload cells were not tested in hosted Colab.
+The original run used AI chat review. The notebook now starts with an uploaded screenplay and direct API settings, with configurable model, endpoint and protocol, hidden key input and raw response/usage logging. It processes every uploaded episode and contains no fixed story or model answer. Rerunning a saved review reproduces decisions, not a fresh model opinion. Code checks prove timing validity in the scripts, not strong hooks in actual footage. The first three seconds, standalone clarity, performance, pacing and picture cuts need editor review. The baseline audit is AI self-review, not independent accuracy testing. No real audience test or edited video is claimed. API integration is implemented and tested using simulated responses; a live paid API run has not been performed. The actual notebook cells were tested locally using simulated TXT/ZIP uploads and both API response formats; hosted Colab was not tested.
 
 The complete review link grants access to confidential excerpts. Put it only in the assignment form, not the public repository. The original input ZIP is not uploaded.
 
