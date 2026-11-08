@@ -3,6 +3,7 @@ import argparse
 import getpass
 import json
 import os
+import re
 from pathlib import Path
 import urllib.error
 import urllib.parse
@@ -20,6 +21,57 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None  # Never forward a key to a redirected host.
 
 
+GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
+
+
+def gemini_base_url(base_url):
+    parsed = urllib.parse.urlsplit(base_url.rstrip('/'))
+    if (parsed.scheme != 'https' or parsed.netloc != 'generativelanguage.googleapis.com'
+            or parsed.query or parsed.fragment or parsed.path not in ('', '/v1beta', '/v1')):
+        raise APIReviewError("For Gemini use https://generativelanguage.googleapis.com/v1beta (no /models suffix).")
+    return 'https://' + parsed.netloc + (parsed.path or '/v1beta')
+
+
+def list_gemini_models(api_key, base_url=GEMINI_BASE):
+    """List models available to the supplied key. Sends no screenplay or generation request."""
+    base_url = gemini_base_url(base_url)
+    models, token, seen = [], '', set()
+    while True:
+        url = base_url + '/models?pageSize=1000'
+        if token:
+            url += '&pageToken=' + urllib.parse.quote(token, safe='')
+        payload = post_json(url, None, api_key)
+        try:
+            data = json.loads(payload)
+            for model in data.get('models', []):
+                if 'generateContent' in model.get('supportedGenerationMethods', []):
+                    models.append(model['name'].removeprefix('models/'))
+            token = data.get('nextPageToken', '')
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise APIReviewError("Could not read Gemini's model list. Check the key and API access.") from None
+        if not token:
+            break
+        if token in seen:
+            raise APIReviewError("Gemini model pagination repeated; stop and retry listing later.")
+        seen.add(token)
+    return sorted(set(models))
+
+
+def choose_gemini_model(api_key, model='', base_url=GEMINI_BASE, choose=input):
+    available = list_gemini_models(api_key, base_url)
+    model = model.strip().removeprefix('models/')
+    if model in available:
+        return model
+    if not available:
+        raise APIReviewError("This key returned no models supporting generateContent. Check Gemini API access.")
+    print("Choose a model available to this key (the previous model is blank or unavailable):")
+    print('\n'.join(available))
+    selected = choose("Paste one model ID from the list above: ").strip().removeprefix('models/')
+    if selected not in available:
+        raise APIReviewError("That model is not in the returned list. Run again and select an exact model ID.")
+    return selected
+
+
 def request_spec(protocol, base_url, model, prompt, max_tokens=4096,
                  chat_token_field="max_completion_tokens"):
     base_url = base_url.rstrip("/")
@@ -27,12 +79,22 @@ def request_spec(protocol, base_url, model, prompt, max_tokens=4096,
     if (parsed.scheme != "https" or not parsed.hostname or parsed.username or
             parsed.password or parsed.query or parsed.fragment):
         raise APIReviewError("Use an HTTPS API base URL without credentials, query or fragment.")
-    if protocol not in ("responses", "chat_completions"):
-        raise APIReviewError("Protocol must be responses or chat_completions.")
+    if protocol not in ("responses", "chat_completions", "gemini"):
+        raise APIReviewError("Protocol must be responses, chat_completions or gemini.")
+    if parsed.hostname == 'generativelanguage.googleapis.com' and protocol != 'gemini' and not (protocol == 'chat_completions' and parsed.path.rstrip('/') == '/v1beta/openai'):
+        raise APIReviewError("Gemini URL with the wrong API format. Select Gemini in the notebook, or use --protocol gemini with https://generativelanguage.googleapis.com/v1beta.")
     if not isinstance(model, str) or not model.strip():
         raise APIReviewError("Enter the exact model ID provided by the interviewer.")
     if type(max_tokens) is not int or not 256 <= max_tokens <= 32768:
         raise APIReviewError("Output token limit must be an integer from 256 to 32768.")
+    if protocol == 'gemini':
+        base_url = gemini_base_url(base_url)
+        model = model.strip().removeprefix('models/')
+        if not re.fullmatch(r'[A-Za-z0-9._-]+', model):
+            raise APIReviewError("Use a Gemini model ID from the available model list, not a URL.")
+        return base_url + '/models/' + model + ':generateContent', dict(
+            contents=[dict(role='user', parts=[dict(text=prompt)])],
+            generationConfig=dict(maxOutputTokens=max_tokens, responseMimeType='application/json'))
     if protocol == "responses":
         return base_url + "/responses", dict(model=model, input=prompt,
                                              max_output_tokens=max_tokens, store=False)
@@ -45,8 +107,11 @@ def request_spec(protocol, base_url, model, prompt, max_tokens=4096,
 def post_json(url, body, api_key, timeout=120):
     if not isinstance(api_key, str) or not api_key.strip() or any(c in api_key for c in "\r\n"):
         raise APIReviewError("A valid API key is required. Use hidden input or an environment variable.")
-    request = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
-        headers={"Authorization": "Bearer " + api_key.strip(), "Content-Type": "application/json"})
+    native_gemini = (urllib.parse.urlsplit(url).hostname == 'generativelanguage.googleapis.com'
+                     and '/openai/' not in urllib.parse.urlsplit(url).path)
+    auth = {'x-goog-api-key': api_key.strip()} if native_gemini else {'Authorization': 'Bearer ' + api_key.strip()}
+    request = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None,
+        method="POST" if body is not None else "GET", headers={**auth, 'Content-Type':'application/json'})
     try:
         with urllib.request.build_opener(NoRedirect).open(request, timeout=timeout) as response:
             return response.read()
@@ -64,7 +129,13 @@ def post_json(url, body, api_key, timeout=120):
 
 
 def response_text(data, protocol):
-    if protocol == "responses":
+    if protocol == 'gemini':
+        candidates = data.get('candidates', [])
+        if not candidates or candidates[0].get('finishReason') != 'STOP':
+            raise APIReviewError("Gemini returned no complete answer (blocked or token limit). Inspect the saved response; increase output tokens if finishReason is MAX_TOKENS.")
+        answer = ''.join(part.get('text', '') for part in candidates[0].get('content', {}).get('parts', [])
+                         if not part.get('thought'))
+    elif protocol == "responses":
         if data.get("status") != "completed":
             raise APIReviewError("Response did not complete. Inspect the saved response; check output budget or refusal.")
         chunks = [c.get("text", "") for item in data.get("output", [])
@@ -142,8 +213,8 @@ def review_with_api(input_path, out, *, api_key, model, base_url="https://api.op
                     raise ValueError()
             except (ValueError, UnicodeError):
                 raise APIReviewError("API returned invalid JSON. Raw response was saved.") from None
-            manifest["calls"].append(dict(episode=number, response_id=response.get("id"),
-                returned_model=response.get("model"), usage=response.get("usage")))
+            manifest["calls"].append(dict(episode=number, response_id=response.get("id", response.get('responseId')),
+                returned_model=response.get("model", response.get('modelVersion')), usage=response.get("usage", response.get('usageMetadata'))))
             cb.dump(out / "api_run.json", manifest)
             answer = response_text(response, protocol)
             (raw / f"episode_{number:03d}.answer.txt").write_text(answer, encoding="utf-8")
@@ -165,15 +236,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--base-url", default="https://api.openai.com/v1")
-    parser.add_argument("--protocol", choices=["responses", "chat_completions"], default="responses")
+    parser.add_argument("--model", default='')
+    parser.add_argument("--base-url", default=None)
+    parser.add_argument("--protocol", choices=["responses", "chat_completions", "gemini"], default="responses")
     parser.add_argument("--max-tokens", type=int, default=4096)
     parser.add_argument("--max-episodes", type=int, default=1)
     parser.add_argument("--chat-token-field", choices=["max_completion_tokens", "max_tokens"], default="max_completion_tokens")
     args = parser.parse_args()
-    key = os.environ.get("MODEL_API_KEY") or getpass.getpass("Provider API key (hidden): ")
+    key = os.environ.get("MODEL_API_KEY") or (os.environ.get('GEMINI_API_KEY') if args.protocol=='gemini' else None) or getpass.getpass("Provider API key (hidden): ")
     try:
+        args.base_url = args.base_url or (GEMINI_BASE if args.protocol=='gemini' else 'https://api.openai.com/v1')
+        if args.protocol == 'gemini':
+            args.model = choose_gemini_model(key, args.model, args.base_url)
         review_with_api(args.input, args.out, api_key=key, model=args.model,
             base_url=args.base_url, protocol=args.protocol, max_tokens=args.max_tokens,
             max_episodes=args.max_episodes, chat_token_field=args.chat_token_field)
@@ -184,3 +258,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
