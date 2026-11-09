@@ -74,7 +74,7 @@ def choose_gemini_model(api_key, model='', base_url=GEMINI_BASE, choose=input):
 
 def request_spec(protocol, base_url, model, prompt, max_tokens=4096,
                  chat_token_field="max_completion_tokens"):
-    base_url = base_url.rstrip("/")
+    base_url = base_url.strip().rstrip("/")
     parsed = urllib.parse.urlsplit(base_url)
     if (parsed.scheme != "https" or not parsed.hostname or parsed.username or
             parsed.password or parsed.query or parsed.fragment):
@@ -87,6 +87,7 @@ def request_spec(protocol, base_url, model, prompt, max_tokens=4096,
         raise APIReviewError("Enter the exact model ID provided by the interviewer.")
     if type(max_tokens) is not int or not 256 <= max_tokens <= 32768:
         raise APIReviewError("Output token limit must be an integer from 256 to 32768.")
+    model = model.strip()
     if protocol == 'gemini':
         base_url = gemini_base_url(base_url)
         model = model.strip().removeprefix('models/')
@@ -95,6 +96,13 @@ def request_spec(protocol, base_url, model, prompt, max_tokens=4096,
         return base_url + '/models/' + model + ':generateContent', dict(
             contents=[dict(role='user', parts=[dict(text=prompt)])],
             generationConfig=dict(maxOutputTokens=max_tokens, responseMimeType='application/json'))
+    # Accept either a base URL or a complete endpoint without duplicating paths.
+    for suffix in ('/chat/completions', '/responses'):
+        if base_url.endswith(suffix):
+            base_url = base_url[:-len(suffix)]
+            break
+    if base_url == 'https://api.openai.com':
+        base_url += '/v1'
     if protocol == "responses":
         return base_url + "/responses", dict(model=model, input=prompt,
                                              max_output_tokens=max_tokens, store=False)
@@ -111,21 +119,61 @@ def post_json(url, body, api_key, timeout=120):
                      and '/openai/' not in urllib.parse.urlsplit(url).path)
     auth = {'x-goog-api-key': api_key.strip()} if native_gemini else {'Authorization': 'Bearer ' + api_key.strip()}
     request = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None,
-        method="POST" if body is not None else "GET", headers={**auth, 'Content-Type':'application/json'})
+        method="POST" if body is not None else "GET", headers={**auth,
+            'Content-Type':'application/json', 'Accept':'application/json',
+            'User-Agent':'CutBefore/1.1 (Python API client)'})
     try:
         with urllib.request.build_opener(NoRedirect).open(request, timeout=timeout) as response:
             return response.read()
     except urllib.error.HTTPError as err:
-        # Provider error bodies can echo prompts or credentials; never print them.
+        # Classify provider errors, but do not expose arbitrary echoed prompts/keys.
         status = err.code
         hints = {401: "Check the key.", 403: "Check model and account permissions.",
                  404: "Check the base URL, protocol and model ID.",
                  429: "Rate or quota limit; wait or check the account budget.",
                  400: "Check model parameters, token field and context length."}
-        raise APIReviewError(f"API HTTP {status}. " + hints.get(status, "Check provider status and settings.") +
+        detail = ''
+        try:
+            error = json.loads(err.read(65536)).get('error', {})
+            if isinstance(error, dict):
+                code = error.get('code') or error.get('status')
+                known = {'invalid_api_key', 'insufficient_quota', 'model_not_found',
+                         'rate_limit_exceeded', 'INVALID_ARGUMENT', 'NOT_FOUND',
+                         'PERMISSION_DENIED', 'RESOURCE_EXHAUSTED', 'UNAUTHENTICATED'}
+                if isinstance(code, str) and code in known:
+                    detail = ' Provider code: ' + code + '.'
+                message = str(error.get('message', '')).lower()
+                if code == 'insufficient_quota' or 'billing' in message or 'quota' in message:
+                    detail += ' Check API billing/credits and quota for this project.'
+                elif code == 'model_not_found' or ('model' in message and ('not found' in message or 'not supported' in message)):
+                    detail += ' The requested model is unavailable for this endpoint/key. Choose a supported generation model.'
+                param = error.get('param')
+                if param in ('max_tokens', 'max_completion_tokens', 'max_output_tokens', 'model', 'temperature'):
+                    detail += ' Rejected parameter: ' + param + '.'
+        except (ValueError, TypeError, AttributeError, OSError):
+            pass
+        raise APIReviewError(f"API HTTP {status}. " + hints.get(status, "Check provider status and settings.") + detail +
                              " No automatic retry was made.") from None
     except (urllib.error.URLError, TimeoutError, OSError):
         raise APIReviewError("API connection failed or timed out. No automatic retry was made; a request may still have been billed.") from None
+
+
+def test_connection(*, api_key, model, base_url, protocol, max_tokens=4096,
+                    chat_token_field='max_completion_tokens'):
+    """One small generation request with no screenplay. No retries or model changes."""
+    url, body = request_spec(protocol, base_url, model,
+        'Return only this JSON object: {"ok": true}', max_tokens, chat_token_field)
+    payload = post_json(url, body, api_key)
+    try:
+        data = json.loads(payload)
+        answer = response_text(data, protocol).strip()
+        if answer.startswith('```json') and answer.endswith('```'):
+            answer = answer[7:-3].strip()
+        if json.loads(answer) != {'ok': True}:
+            raise ValueError()
+    except (ValueError, TypeError, AttributeError):
+        raise APIReviewError('The endpoint responded, but the connection test did not return complete expected JSON. Check model support and output token budget.') from None
+    return 'Connection test passed: the selected model generated a valid response. No screenplay was sent.'
 
 
 def response_text(data, protocol):
@@ -258,4 +306,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
