@@ -1,24 +1,8 @@
-# Cut Before
+# Cut Before — Find the Promos
 
 **Atit Kumar Satsangi | 230241 | Civil Engineering**
 
-**Find the moment. Keep the question.** A working submission for Kuku's AI Generalist assignment, Problem 1.
-
-| Open | Link |
-|---|---|
-| Two-page solution | [Read PDF](https://atits23.github.io/cut-before-kuku-assignment/solution.pdf) |
-| Submission website | [View report](https://atits23.github.io/cut-before-kuku-assignment/) |
-| Runnable prototype | [Open in Colab](https://colab.research.google.com/github/atits23/cut-before-kuku-assignment/blob/main/Cut_Before.ipynb) |
-
-The full run covered **50 episodes and 3,727 timed events**, with **17 test-first clips, 20 clips needing further review and 13 episodes not recommended**. Full results and unedited raw outputs are available through the complete encrypted review link supplied in the placement form. That link opens without an account. Its key is deliberately absent from this repository.
-
-The notebook starts with your uploaded screenplay, then API settings, fresh review and output download. It has no preloaded story or fixed model answer. The original full-pack submission results came from chat review and remain available separately.
-
-## Review access and confidentiality
-
-`docs/review.enc` contains AES-256-GCM encrypted assignment outputs. The full review URL carries the key in its fragment, which is not included in the HTTP request. The browser decrypts locally; there are no analytics or third-party scripts. **Anyone with the complete link can read the material.** This is link-based sharing, not identity-based access. Do not post that link in public issues, README files or repository history. The original input ZIP is not uploaded. Generated review packets inside the protected download contain confidential source excerpts.
-
-The PDF describes the solution and a few selected promo examples. Code and clearly labelled automated-test fixtures are public; test fixtures are not used by the notebook. Twenty-five code tests pass, including thirteen simulated-response API tests; no live paid API run is claimed. No audience performance has been measured.
+Problem 1 of the Kuku AI Generalist assignment. Find and rank 20–60 second promo moments from a timestamped screenplay. Each result gives the episode, start/end times, hook, cliffhanger and reason. This version selects one continuous segment per retained episode. **No video editing, music or text overlays.**
 
 ## Run on a new story
 
@@ -93,10 +77,18 @@ For one combined review JSON, skip `merge` and pass that file to `finalize`. Rep
 python -m unittest -v test_cut_before test_api_review
 ```
 
-Twenty-five tests cover parsing, boundaries, scores, new inputs and simulated API responses. The notebook is also checked with simulated uploads and responses. A live paid API run and hosted Colab upload have not been tested. The original 50-episode submission used chat review, not the later API adapter. No audience uplift or frame accuracy is claimed.
+Twenty-nine tests cover parsing, boundaries, scores, new inputs and simulated API responses. The notebook is also checked with simulated uploads and responses. Hosted Colab setup, upload and Gemini model listing were tested. The prior live generation attempt returned HTTP 404; successful live generation remains unverified. The original 50-episode submission used chat review, not the later API adapter. No audience uplift or frame accuracy is claimed.
 
 Files under `examples/` are **automated-test fixtures only**. They are not loaded by the notebook or used as new-story results. There is no montage search. An editor must check the opening, ending, clarity and script-to-video timing. The submitted baseline and failure audit preserve actual mistakes.
 
 Keep confidential scripts, responses and notebook outputs out of public repositories. Clear private cell outputs before sharing. The original Kuku ZIP is not bundled.
 
 API references: [Gemini API](https://ai.google.dev/api), [OpenAI text generation](https://developers.openai.com/api/docs/guides/text), [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+
+## API connection troubleshooting
+
+Open the latest notebook and rerun setup to load the corrected adapter. Tick RUN_API and TEST_CONNECTION_ONLY to test one small generation request without sending a screenplay. Untick TEST_CONNECTION_ONLY and rerun the settings cell before processing your upload.
+
+Gemini uses x-goog-api-key; OpenAI uses Authorization: Bearer. Both send JSON Content-Type and Accept headers, plus an honest client User-Agent. No Mozilla/browser header is required. OpenAI root URLs and complete Responses/Chat endpoints are normalized to avoid duplicate paths. Custom providers must supply their documented base URL, protocol, model ID and token field.
+
+401: check the provider/key. 403: check permissions. 404: check model availability and endpoint. 429: check quota/credits or rate limits. A model appearing in a listing does not prove generation access. Error messages now include recognized provider error codes and rejected token parameters without echoing private error bodies. No automatic retry or model substitution occurs.
