@@ -1,5 +1,6 @@
 """Offline API contract tests using synthetic responses, never paid model calls."""
 import copy
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -17,6 +18,50 @@ tempfile.tempdir = str(TEST_TMP)
 
 
 class APIReviewTests(unittest.TestCase):
+    def test_complete_endpoints_and_whitespace(self):
+        for base in (' https://api.openai.com/ ', 'https://api.openai.com/v1/responses',
+                     'https://api.openai.com/v1/chat/completions/'):
+            url, body = api.request_spec('responses',base,' model-id ','hello')
+            self.assertEqual(url,'https://api.openai.com/v1/responses')
+            self.assertEqual(body['model'],'model-id')
+
+    def test_bearer_and_json_headers(self):
+        with patch('urllib.request.build_opener') as opener:
+            opener.return_value.open.return_value.__enter__.return_value.read.return_value=b'{}'
+            api.post_json('https://api.openai.com/v1/responses',{},'private-test-key')
+            req=opener.return_value.open.call_args.args[0]
+            self.assertEqual(req.get_header('Authorization'),'Bearer private-test-key')
+            self.assertEqual(req.get_header('Content-type'),'application/json')
+            self.assertEqual(req.get_header('Accept'),'application/json')
+            self.assertIn('CutBefore',req.get_header('User-agent'))
+
+    def test_actionable_error_does_not_echo_message(self):
+        payload=json.dumps({'error':{'code':'model_not_found',
+            'message':'model not found private-test-key confidential screenplay'}}).encode()
+        err=urllib.error.HTTPError('https://api.example',404,'Not Found',{},io.BytesIO(payload))
+        with patch('urllib.request.build_opener') as opener:
+            opener.return_value.open.side_effect=err
+            with self.assertRaises(api.APIReviewError) as caught:
+                api.post_json('https://api.example',{},'private-test-key')
+            message=str(caught.exception)
+            self.assertIn('model_not_found',message)
+            self.assertNotIn('private-test-key',message)
+            self.assertNotIn('confidential screenplay',message)
+
+    def test_connection_check_all_protocols(self):
+        for protocol in ('responses','chat_completions','gemini'):
+            if protocol=='gemini':
+                payload={'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':'{"ok":true}'}]}}]}
+            elif protocol=='responses':
+                payload={'status':'completed','output':[{'type':'message','content':[{'type':'output_text','text':'{"ok":true}'}]}]}
+            else:
+                payload={'choices':[{'finish_reason':'stop','message':{'content':'{"ok":true}'}}]}
+            with patch.object(api,'post_json',return_value=json.dumps(payload).encode()) as post:
+                result=api.test_connection(api_key='test',model='model',protocol=protocol,
+                    base_url=api.GEMINI_BASE if protocol=='gemini' else 'https://api.openai.com/v1')
+                self.assertIn('passed',result)
+                self.assertEqual(post.call_count,1)
+
     def test_gemini_end_to_end(self):
         payload=json.dumps(dict(responseId='gem-test',modelVersion='available-gemini-model',
             usageMetadata={'totalTokenCount':321},candidates=[dict(finishReason='STOP',
