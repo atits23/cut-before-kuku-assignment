@@ -30,7 +30,7 @@ I use one continuous 20--60 second segment per selected episode. This keeps the 
 \heading{3. Results from the complete input pack}
 The scan read \textbf{50 episodes and 3,727 timed events}, checked 15,152 valid windows and produced 149 rule suggestions. The saved AI review covers all 50 episodes: \textbf{17 test first, 20 review further and 13 not recommended}. All 37 retained clips pass the duration, exact-boundary and uncut-dialogue checks.
 
-\textbf{Result provenance:} these submitted decisions were made through AI chat review in Codex, then validated and exported by Python. They are not results from a successful live API generation run. The API adapter is the separate route for fresh inputs and stronger interview models. Both routes use the same review format and validator.
+\textbf{Result provenance:} these submitted decisions were made through AI chat review in Codex, then validated and exported by Python. They are not API-generated full-pack results. A separate live Gemini run on episode 44 subsequently passed validation. The API adapter is the separate route for fresh inputs and stronger interview models. Both routes use the same review format and validator.
 
 \heading{4. What I would post first, and why}
 \textbf{1. Episode 12: 00:44.00--01:09.20 (25.2 s).} A sister demands that Juliana crawl into thorns. The clip ends with a threat to hang her husband. The cruel choice is easy to understand and leaves a strong unanswered question. This is my first test.
@@ -60,7 +60,7 @@ Keys are sent in the provider's authentication header, never placed in the URL o
 \heading{7. What has actually been tested}
 \textbf{Passed:} 29 automated tests covering parsing, timing, review validation, authentication headers, URL handling, error privacy and simulated API responses. The actual notebook cells were also run locally with simulated fresh TXT/ZIP uploads for all three API formats, including validation and ZIP download. Hosted Colab setup, a real screenplay upload and Gemini model listing worked.
 
-\textbf{Not yet passed:} live generation. The Gemini attempt using \texttt{gemini-2.5-flash} returned HTTP 404 and produced no validated API report. The adapter and notebook were then updated with clearer diagnostics, endpoint normalization and a connection test. Successful generation with a real provider key remains unverified. A stronger supplied API must pass that check before a fresh result is claimed.
+\textbf{Live generation passed:} in hosted Colab, \texttt{gemini-3.5-flash} passed the small connection test, then reviewed the uploaded episode 44. It produced ``Chosen in Chains, \textbf{00:46.40--01:10.50 (24.1 s)}, and the validator accepted one episode decision and one clip. The earlier \texttt{gemini-2.5-flash} attempt returned HTTP 404. This confirms the Gemini workflow on one real episode, not API generation of the full 50-episode pack or live testing of every supported provider.
 
 \heading{8. Scale, evaluation and tools used}
 At larger scale, I would cache unchanged episodes by fingerprint, use bounded parallel API requests, track tokens and failures, and let editors check the strongest clips. These are next steps, not implemented scale claims. I would ask two editors to review 30 suggestions, measure usable clips and time saved, then compare audience retention under the same test conditions. No audience uplift has been measured; script timing alone cannot prove pacing, picture cuts or a strong hook.

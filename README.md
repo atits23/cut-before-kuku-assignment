@@ -77,7 +77,7 @@ For one combined review JSON, skip `merge` and pass that file to `finalize`. Rep
 python -m unittest -v test_cut_before test_api_review
 ```
 
-Twenty-nine tests cover parsing, boundaries, scores, new inputs and simulated API responses. The notebook is also checked with simulated uploads and responses. Hosted Colab setup, upload and Gemini model listing were tested. The prior live generation attempt returned HTTP 404; successful live generation remains unverified. The original 50-episode submission used chat review, not the later API adapter. No audience uplift or frame accuracy is claimed.
+Twenty-nine tests cover parsing, boundaries, scores, new inputs and simulated API responses. The notebook is also checked with simulated uploads and responses. Hosted Colab setup, upload and Gemini model listing were tested. A live Gemini 3.5 Flash run in hosted Colab passed: uploaded episode 44 produced one validated 24.1-second promo (00:46.40-01:10.50). This verifies one real episode with Gemini; other providers and a full-pack API run remain unverified. The original 50-episode submission used chat review, not the later API adapter. No audience uplift or frame accuracy is claimed.
 
 Files under `examples/` are **automated-test fixtures only**. They are not loaded by the notebook or used as new-story results. There is no montage search. An editor must check the opening, ending, clarity and script-to-video timing. The submitted baseline and failure audit preserve actual mistakes.
 
